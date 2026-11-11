@@ -17,7 +17,7 @@ import { api } from "../lib/api";
 import { useApi } from "../lib/useApi";
 import { useAuth } from "../context/auth";
 import { useToast } from "../context/toast";
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, categoryMeta } from "../lib/categories";
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, PAYMENTS, categoryMeta } from "../lib/categories";
 import { formatDate, formatMoney } from "../lib/format";
 import {
   Badge,
@@ -141,7 +141,7 @@ export default function Transactions() {
         <form
           role="search"
           onSubmit={(e) => e.preventDefault()}
-          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.5fr)_repeat(4,minmax(0,1fr))_auto]"
+          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_repeat(2,minmax(0,0.9fr))_repeat(2,minmax(0,1.1fr))_auto]"
         >
           <label className="relative sm:col-span-2 lg:col-span-1">
             <span className="sr-only">Search notes and categories</span>
@@ -341,7 +341,9 @@ export default function Transactions() {
                       </div>
                     </td>
                     <td className="px-3 py-2.5 text-muted">{categoryMeta(t.category).label}</td>
-                    <td className="px-3 py-2.5 text-muted uppercase">{t.payment || "—"}</td>
+                    <td className="px-3 py-2.5 text-muted">
+                      {PAYMENTS.find((p) => p.value === t.payment)?.label ?? "—"}
+                    </td>
                     <td className="px-3 py-2.5 text-right whitespace-nowrap">{amount(t)}</td>
                     <td className="px-5 py-1.5">
                       <div className="flex justify-end">

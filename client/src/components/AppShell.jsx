@@ -119,7 +119,7 @@ export default function AppShell({ fallback }) {
       <header className="sticky top-0 z-30 border-b border-line bg-canvas/85 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
           <Logo className="lg:hidden" />
-          <h1 className="hidden text-lg font-semibold lg:block">{current?.label}</h1>
+          <h1 className="hidden text-lg font-semibold sm:block">{current?.label}</h1>
           <div className="ml-auto flex items-center gap-2">
             {showMonth && (
               <div className="hidden sm:block">
