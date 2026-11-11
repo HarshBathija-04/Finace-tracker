@@ -143,7 +143,7 @@ export default function Transactions() {
         <form
           role="search"
           onSubmit={(e) => e.preventDefault()}
-          className="grid grid-cols-2 gap-3 lg:grid-cols-[minmax(0,1.4fr)_repeat(2,minmax(0,0.9fr))_repeat(2,minmax(0,1.1fr))_auto]"
+          className="grid grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-[minmax(0,1.4fr)_repeat(2,minmax(0,0.9fr))_repeat(2,minmax(0,1.1fr))_auto]"
         >
           <label className="relative col-span-2 lg:col-span-1">
             <span className="sr-only">Search notes and categories</span>
@@ -204,7 +204,7 @@ export default function Transactions() {
               aria-label="To date"
             />
           </label>
-          <div className="col-span-2 flex gap-2 lg:col-span-1">
+          <div className="col-span-2 flex gap-2 lg:col-span-1 lg:justify-end">
             <Select
               aria-label="Sort"
               value={sort}
