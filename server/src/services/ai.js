@@ -11,15 +11,16 @@ const groq = () => {
 };
 
 /** One chat completion that must return a JSON object; Groq failures become friendly HTTP errors. */
-export async function chatJson({ model, messages }) {
+export async function chatJson({ model, messages, reasoning = false }) {
   let completion;
   try {
     completion = await groq().chat.completions.create({
       model,
       messages,
       temperature: 0.3,
-      max_completion_tokens: 1200,
+      max_completion_tokens: 2000,
       response_format: { type: "json_object" },
+      ...(reasoning && { reasoning_effort: "low" }),
     });
   } catch (err) {
     if (err instanceof HttpError) throw err;
@@ -56,12 +57,13 @@ const insightSchema = z.object({
 export async function generateInsights(aggregate) {
   const data = await chatJson({
     model: config.groqTextModel,
+    reasoning: true,
     messages: [
       {
         role: "system",
         content:
           "You are a careful personal finance coach. You receive one user's aggregated monthly figures as JSON. " +
-          "Amounts are already in major currency units. Give 3 or 4 specific, actionable insights grounded only in the numbers given; " +
+          "Amounts are already in major currency units. Return exactly 4 specific, actionable insights grounded only in the numbers given; " +
           "quote concrete figures with the currency code, compare with last month when useful, never invent data, never recommend specific investments. " +
           'Reply with JSON only: {"insights":[{"title":"short headline","detail":"1-2 sentences","tone":"positive|neutral|warning"}]}',
       },

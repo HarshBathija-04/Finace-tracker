@@ -47,7 +47,9 @@ export async function monthSummary(userId, year, month) {
     query("SELECT currency FROM users WHERE id = $1", [userId]),
   ]);
   const c = cur.rows[0];
-  const days = daily.rows.length;
+  // Average over days elapsed so far, so the current month is not diluted by days still to come.
+  const today = new Date().toISOString().slice(0, 10);
+  const days = daily.rows.filter((r) => r.date <= today).length || daily.rows.length;
   return {
     year,
     month,

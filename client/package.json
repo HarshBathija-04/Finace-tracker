@@ -1,38 +1,35 @@
 {
-  "name": "client",
+  "name": "finsight-web",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 5211 --strictPort",
     "build": "vite build",
+    "preview": "vite preview --port 5211 --strictPort",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "format": "prettier --write src",
+    "format:check": "prettier --check src",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^2.9.0",
-    "@tailwindcss/vite": "^4.1.13",
-    "axios": "^1.12.2",
-    "framer-motion": "^12.23.16",
-    "lucide-react": "^0.544.0",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "react-redux": "^9.2.0",
-    "react-router-dom": "^7.9.1",
-    "recharts": "^3.2.1",
-    "sitemap": "^8.0.0",
-    "socket.io-client": "^4.8.1",
-    "tailwindcss": "^4.1.13"
+    "lucide-react": "1.72.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-router-dom": "7.18.5",
+    "recharts": "3.10.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.33.0",
-    "@types/react": "^19.1.10",
-    "@types/react-dom": "^19.1.7",
-    "@vitejs/plugin-react": "^5.0.0",
-    "eslint": "^9.33.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.20",
-    "globals": "^16.3.0",
-    "vite": "^7.1.2"
+    "@eslint/js": "9.39.5",
+    "@tailwindcss/vite": "4.3.5",
+    "@vitejs/plugin-react": "5.2.0",
+    "eslint": "9.39.5",
+    "eslint-plugin-react-hooks": "5.2.0",
+    "eslint-plugin-react-refresh": "0.5.7",
+    "globals": "17.14.0",
+    "prettier": "3.10.0",
+    "tailwindcss": "4.3.5",
+    "vite": "7.3.8",
+    "vitest": "5.1.0"
   }
 }
