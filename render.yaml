@@ -1,0 +1,27 @@
+# Render Blueprint for the FinSight API. The Postgres database is shared and created once by hand,
+# so there is no `databases:` block: paste its connection string into DATABASE_URL.
+services:
+  - type: web
+    name: finsight-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm ci --omit=dev
+    startCommand: npm run start:prod
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: DB_SCHEMA
+        value: finance_tracker
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
