@@ -162,7 +162,7 @@ export default function Transactions() {
           <label>
             <span className="sr-only">Type</span>
             <Select value={params.get("type") || ""} onChange={(e) => update({ type: e.target.value })}>
-              <option value="">All types</option>
+              <option value="">Any type</option>
               <option value="expense">Expenses</option>
               <option value="income">Income</option>
             </Select>
@@ -170,7 +170,7 @@ export default function Transactions() {
           <label>
             <span className="sr-only">Category</span>
             <Select value={params.get("category") || ""} onChange={(e) => update({ category: e.target.value })}>
-              <option value="">All categories</option>
+              <option value="">Any category</option>
               {ALL_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
                   {categoryMeta(c).label}

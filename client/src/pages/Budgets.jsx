@@ -8,6 +8,7 @@ import { useToast } from "../context/toast";
 import { EXPENSE_CATEGORIES, categoryMeta } from "../lib/categories";
 import { formatMoney, minorToInput, parseToMinor, periodLabel } from "../lib/format";
 import {
+  Badge,
   Button,
   Card,
   CardHeader,
@@ -115,6 +116,7 @@ export default function Budgets() {
                   <div className="mb-1.5 flex items-center justify-between text-sm">
                     <span className="flex items-center gap-2 font-medium">
                       <Target className="size-4 text-brand" aria-hidden="true" /> Savings goal
+                      {budget.savedMinor >= budget.targetSavingsMinor && <Badge tone="brand">Reached</Badge>}
                     </span>
                     <span className="num text-muted">
                       <span className="text-ink">
