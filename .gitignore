@@ -50,3 +50,10 @@ Desktop.ini
 # Logs
 logs/
 *.log
+
+# Env & local data
+.env.*
+!.env.example
+uploads/
+coverage/
+.vercel/
