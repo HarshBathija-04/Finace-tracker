@@ -1,25 +1,27 @@
 # FinSight
 
-**A personal finance tracker that shows where your month went: budgets that warn you early, a clear dashboard, and AI spending insights generated from your own totals.**
+**A personal finance tracker that shows where your month went: budgets that warn you early, a clear dashboard, and AI insights built from your own totals.**
 
-| | |
-| --- | --- |
-| Live app (Vercel) | `https://<your-vercel-project>.vercel.app` _(placeholder)_ |
-| API (Render) | `https://finsight-api.onrender.com/health` _(placeholder)_ |
-| Demo | Click **Try the live demo** on the landing page. It opens a seeded account with six months of sample data, so you don't need to sign up. |
+[![CI](https://github.com/HarshBathija-04/Finace-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/HarshBathija-04/Finace-tracker/actions/workflows/ci.yml)
+![React 19](https://img.shields.io/badge/React-19-149eca)
+![Express 5](https://img.shields.io/badge/Express-5-333)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791)
 
-> The API runs on Render's free tier. If nobody has used it for a while, the first request can take 30 to 60 seconds while the server wakes up, and the app shows a "waking up the server" banner during that wait.
+**Live demo:** `https://<your-vercel-project>.vercel.app` _(placeholder)_ · **API health:** `https://<your-render-service>.onrender.com/health` _(placeholder)_
+
+Click **Try the live demo** on the landing page to open a seeded account with six months of sample data. You don't need to sign up.
+
+> The API runs on Render's free tier. After a quiet spell, the first request can take 30 to 60 seconds while the server wakes up. The app shows a "Waking up the server" banner during that wait.
 
 ## Features
 
-- **Dashboard**: balance, monthly income, expenses and savings rate, each compared with last month. It also shows a six-month cash-flow chart, a spending-by-category donut, budget progress and recent transactions.
-- **Transactions**: a searchable table with filters for type, category, date range and recurring-only. Filters stay in the URL. Totals are shown for the filtered set, and you get pagination, add, edit and delete.
-- **Budgets**: one monthly limit, a savings goal, and per-category caps. Spend is computed live from transactions. You get an alert at 80% and another when you go over (deduplicated, so you see each one once per month).
-- **AI spending insights** (Groq `openai/gpt-oss-120b`): 3 to 4 actionable insights per month. The model receives **only aggregated totals**: no notes, names or individual transactions.
-- **Receipt scanning** (Groq vision `qwen/qwen3.8-27b`): upload a photo and the form fills itself in for you to review before saving. Images are processed in memory and never stored.
-- **Recurring transactions**: daily, weekly or monthly templates that the scheduler copies forward without creating duplicates. You can pause, resume or stop them.
-- **Notifications** for budget alerts, plus profile, currency and alert settings.
-- Accessible, responsive UI (down to 375 px) with light and dark themes, skeleton/empty/error states and toasts.
+- **Dashboard**: balance, income, expenses and savings rate, each compared with last month. Below them sit a six-month cash-flow chart, a spending-by-category donut, budget progress and recent transactions.
+- **Transactions**: search plus filters for type, category, date range and recurring-only. Filters are kept in the URL and totals cover the filtered set.
+- **Budgets**: a monthly limit, a savings goal and per-category caps, all checked against live spend. You get one alert at 80% and another if you go over.
+- **AI insights** (Groq `openai/gpt-oss-120b`): four short, specific insights per month. The model sees **aggregated totals only**. It never sees your notes, your name or individual transactions.
+- **Receipt scanning** (Groq vision `qwen/qwen3.8-27b`): a photo fills in the form for you to check before saving. Images are processed in memory and never stored.
+- **Recurring transactions**: daily, weekly or monthly. You can pause, resume or stop them.
+- Responsive down to 375 px, light and dark themes, keyboard accessible, and loading, empty and error states on every screen.
 
 ## Screenshots
 
@@ -37,14 +39,22 @@
 flowchart LR
   U[Browser] -->|HTTPS| V[Vercel<br/>React + Vite SPA]
   V -->|fetch + Bearer JWT| A[Render web service<br/>Express API]
-  A -->|pg, search_path=finance_tracker| P[(Render PostgreSQL<br/>shared DB, own schema)]
-  A -->|aggregates only| G[Groq API<br/>gpt-oss-120b / qwen vision]
-  K[GitHub Actions<br/>keep-alive every 10 min] -->|GET /health| A
+  A -->|pg, search_path = DB_SCHEMA| P[(Shared PostgreSQL<br/>schema finance_tracker)]
+  A -->|monthly aggregates only| G[Groq API<br/>text + vision models]
+  K[GitHub Actions<br/>keep-alive, every 10 min] -->|GET /health| A
 ```
 
-- The frontend is a static SPA. It never calls Groq directly; every AI call goes through the API.
-- The API is stateless JWT auth (HS256, bcrypt-hashed passwords). Every query is scoped to the user in the token.
-- Money is stored as integer **minor units** (`BIGINT` paise/cents) and travels through the API as `amountMinor` integers. Only the UI divides by 100, and only for display.
+The SPA never calls Groq directly: every AI request goes through the API, which holds the key.
+
+## Engineering highlights
+
+- **Schema-per-app database.** Several portfolio apps share one Postgres instance. Each pool connection sets `search_path` to `DB_SCHEMA`, migrations create that schema themselves, and the name is checked against a strict identifier regex before it reaches any SQL.
+- **Money as integers.** Amounts are `BIGINT` minor units (paise/cents) from the database to the API (`amountMinor`). Decimal input is parsed with string arithmetic, never float multiplication, and only the UI divides by 100.
+- **Transaction-safe writes.** A budget upsert and its category limits are saved in one transaction, so a failure can't leave half a budget behind. Each migration is applied together with its bookkeeping row, and the demo reseed works the same way.
+- **Idempotent background work.** Recurring copies rely on a partial unique index on `(recurring_parent_id, occurred_on)` with `ON CONFLICT DO NOTHING`, so the scheduler is safe to run again after a crash or restart. Budget alerts are deduplicated per month and threshold in the same way.
+- **AI with guardrails.** The model receives only aggregated totals. Its JSON reply is validated with zod and cached for 30 minutes per user and month, and its requests have their own rate limit. Receipt output is normalised before the user reviews it.
+- **Auth hardening.** bcrypt hashes, HS256 JWTs with a pinned algorithm, and the same response for a wrong password and an unknown email (both paths run a bcrypt compare). Auth and AI routes are rate limited, and the API sends helmet headers and only accepts origins on the CORS allowlist.
+- **Built for a cold start.** If a request takes longer than 3.5 s, the client shows a wake-up banner. Requests time out after 90 s, and the keep-alive workflow pings `/health`, which also runs `SELECT 1` against the database.
 
 ## Tech stack
 
@@ -52,128 +62,105 @@ flowchart LR
 | --- | --- |
 | Frontend | React 19, Vite 7, Tailwind CSS 4, React Router 7, Recharts, lucide-react |
 | Backend | Node 22, Express 5, pg, zod, helmet, express-rate-limit, multer, bcryptjs, jsonwebtoken |
-| AI | groq-sdk (`openai/gpt-oss-120b` text, `qwen/qwen3.8-27b` vision) |
-| Data | PostgreSQL 16 (SQL migrations, idempotent seed) |
+| AI | groq-sdk (`openai/gpt-oss-120b` for text, `qwen/qwen3.8-27b` for vision) |
+| Data | PostgreSQL 16, plain SQL migrations, idempotent seed |
 | Quality | Vitest, Supertest, ESLint, Prettier, GitHub Actions CI |
 
-## Local setup
+## Quick start
 
-Prerequisites: Node 20 or newer and a PostgreSQL database. Any local Postgres works; this project defaults to `postgresql://postgres:postgres@localhost:5433/portfolio`.
+You need Node 20 or newer and a running PostgreSQL. The defaults expect `postgresql://postgres:postgres@localhost:5433/portfolio`.
 
 ```bash
-# API
+# API: http://localhost:5122
 cd server
-cp .env.example .env          # then set JWT_SECRET, and GROQ_API_KEY to enable AI features
+cp .env.example .env     # set JWT_SECRET; add GROQ_API_KEY to enable AI features
 npm install
-npm run migrate               # creates schema finance_tracker and its tables
-npm run seed                  # demo account with 6 months of data (safe to re-run)
-npm run dev                   # http://localhost:5122
+npm run migrate          # creates schema finance_tracker and its tables
+npm run seed             # demo account with six months of data (safe to re-run)
+npm run dev
 
-# Web (second terminal)
+# Web, in a second terminal: http://localhost:5211
 cd client
-cp .env.example .env          # VITE_API_URL=http://localhost:5122
+cp .env.example .env     # VITE_API_URL=http://localhost:5122
 npm install
-npm run dev                   # http://localhost:5211
+npm run dev
 ```
 
-Tests and checks:
+Checks (the same ones CI runs):
 
 ```bash
-cd server && npm run lint && npm test     # uses a throwaway schema finance_tracker_test
-cd client && npm run lint && npm test && npm run build
+cd server && npm run lint && npm run format:check && npm test   # tests use a throwaway schema
+cd client && npm run lint && npm run format:check && npm test && npm run build
 ```
 
 ## Environment variables
 
-### API (`server/.env`)
+**API (`server/.env`)**
 
-| Variable | Required | Description |
-| --- | --- | --- |
-| `DATABASE_URL` | yes | Postgres connection string. On Render, use the shared database's **internal** URL. |
-| `DB_SCHEMA` | no (`finance_tracker`) | Schema holding this app's tables. Several apps share one database, each in its own schema. |
-| `JWT_SECRET` | yes in production | Signing secret for access tokens. The Blueprint generates it. |
-| `JWT_EXPIRES_IN` | no (`7d`) | Token lifetime. |
-| `FRONTEND_URL` | yes in production | Comma-separated allowed CORS origins, e.g. `https://finsight.vercel.app`. |
-| `GROQ_API_KEY` | for AI features | Groq key. Without it, insights and receipt scanning return a friendly 503. |
-| `GROQ_TEXT_MODEL` / `GROQ_VISION_MODEL` | no | Override the default models. |
-| `DEMO_ENABLED` | no (`true`) | Set to `false` to turn off one-click demo sign-in. |
-| `PORT` | no (`5122`) | Render sets this automatically. |
-| `DATABASE_SSL_NO_VERIFY` | no | Only if connecting through an external URL whose certificate can't be verified. |
+| Variable | Required | Default | Description |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | yes | local URL above (dev only) | Postgres connection string. On Render, use the shared database's internal URL. |
+| `DB_SCHEMA` | no | `finance_tracker` | Schema that holds this app's tables. Lowercase letters, digits and `_` only. |
+| `JWT_SECRET` | in production | dev-only value | Signs access tokens. The Render Blueprint generates it. |
+| `JWT_EXPIRES_IN` | no | `7d` | Token lifetime. |
+| `FRONTEND_URL` | in production | `http://localhost:5211` | Allowed CORS origins, comma-separated. |
+| `GROQ_API_KEY` | for AI | none | Without it, insights and receipt scanning return a friendly 503. |
+| `GROQ_TEXT_MODEL`, `GROQ_VISION_MODEL` | no | see Tech stack | Override the models. |
+| `DEMO_ENABLED` | no | `true` | Set to `false` to turn off one-click demo sign-in. |
+| `PORT` | no | `5122` | Render sets this for you. |
+| `DATABASE_SSL_NO_VERIFY` | no | `false` | Only needed for an external URL whose certificate can't be verified. |
 
-### Web (`client/.env`)
+**Web (`client/.env`)**
 
 | Variable | Description |
 | --- | --- |
-| `VITE_API_URL` | Base URL of the API, without a trailing slash. |
+| `VITE_API_URL` | API base URL, without a trailing slash. |
 
-## Deployment
+## Deploy
 
-### 1. Database (once, shared)
+1. **Database (one-time setup, shared).** Use the shared Render PostgreSQL instance and copy its **Internal Database URL**. The migrations create this app's schema and never touch any other schema.
+2. **API on Render.** Go to **New > Blueprint** and pick this repository. `render.yaml` creates `finsight-api` (`rootDir: server`, health check `/health`, `DB_SCHEMA=finance_tracker`). Fill in `DATABASE_URL` (the shared DB's internal URL), `FRONTEND_URL` and `GROQ_API_KEY`. `JWT_SECRET` is generated for you. Each start runs `migrate` and `seed`, both idempotent, before the server starts.
+3. **Web on Vercel.** Go to **Add New > Project**, import the repo, set **Root Directory** to `client`, and add `VITE_API_URL=https://<your-render-service>.onrender.com`. `vercel.json` handles SPA rewrites and adds security and cache headers. Then put the final Vercel URL into the API's `FRONTEND_URL`.
+4. **Keep-alive.** Under **Settings > Secrets and variables > Actions > Variables**, add the repository variable `BACKEND_URL=https://<your-render-service>.onrender.com`. `.github/workflows/keep-alive.yml` pings `/health` every 10 minutes. If the variable isn't set, the workflow skips with a notice.
 
-Create one **Render PostgreSQL** instance by hand (the free plan allows one per account) and copy its **Internal Database URL**. Migrations create the `finance_tracker` schema themselves and never touch other schemas.
+## API at a glance
 
-### 2. API on Render
-
-1. In Render, go to **New > Blueprint** and select this repository. Render reads `render.yaml` and creates the `finsight-api` web service (`rootDir: server`, health check `/health`).
-2. Fill in the prompted secrets: `DATABASE_URL` (the shared DB's internal URL), `FRONTEND_URL` (your Vercel URL) and `GROQ_API_KEY`. `JWT_SECRET` is generated for you.
-3. Each start runs `migrate` and `seed`, which are both idempotent, before starting the server.
-
-### 3. Web on Vercel
-
-1. In Vercel, go to **Add New > Project**, import the repository, and set **Root Directory** to `client`. The Vite framework preset is detected automatically.
-2. Add the environment variable `VITE_API_URL=https://<your-render-service>.onrender.com`.
-3. Deploy. `vercel.json` handles SPA rewrites and adds security and caching headers.
-4. Put the final Vercel URL back into the API's `FRONTEND_URL`.
-
-### 4. Keep-alive
-
-Under **GitHub > Settings > Secrets and variables > Actions > Variables**, add a repository variable `BACKEND_URL=https://<your-render-service>.onrender.com`. The `keep-alive` workflow pings `/health` every 10 minutes, which also runs `SELECT 1` against the database. If the variable is unset, the workflow skips with a notice.
-
-## API overview
-
-All routes except auth and health need `Authorization: Bearer <token>`. Errors always look like `{ "error": { "code", "message", "details?" } }`.
+Every route except auth and health needs `Authorization: Bearer <token>`. Errors are always returned as `{ "error": { "code", "message", "details?" } }`.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| GET | `/health` | `{"status":"ok","db":"ok"}`, or 503 if the DB is down |
-| POST | `/api/auth/register`, `/api/auth/login`, `/api/auth/demo` | Returns `{ user, token }` (rate limited) |
-| GET/PUT | `/api/user/me` | Profile, currency, alert setting, password change |
-| GET/POST | `/api/transactions` | List with filters (`type, category, from, to, q, recurring, sort, page, pageSize`) / create |
-| PUT/DELETE | `/api/transactions/:id` | Update / delete your own transaction |
-| PATCH | `/api/transactions/:id/recurring` | `{ status: active, paused or cancelled }` |
-| POST | `/api/transactions/scan-receipt` | multipart `receipt` image, returns a draft (AI, rate limited) |
-| GET/PUT/DELETE | `/api/budgets/:year/:month` | Budget with live progress / upsert / remove |
-| GET | `/api/reports/summary?year&month` | Totals, by-category, daily series, budget |
-| GET | `/api/reports/trend?year&month&months` | Monthly income and expense series |
-| GET | `/api/reports/insights?year&month` | Groq insights (cached 30 min, rate limited) |
-| GET/PATCH/POST/DELETE | `/api/notifications...` | List, mark read, mark all read, clear |
+| GET | `/health` | `{"status":"ok","db":"ok"}`, or 503 when the DB is down |
+| POST | `/api/auth/register`, `/login`, `/demo` | Returns `{ user, token }` (rate limited) |
+| GET, PUT | `/api/user/me` | Profile, currency, alert setting, password change |
+| GET, POST | `/api/transactions` | List (`type, category, from, to, q, recurring, sort, page, pageSize`) or create |
+| PUT, DELETE | `/api/transactions/:id` | Update or delete your own transaction |
+| PATCH | `/api/transactions/:id/recurring` | `{ status: "active" \| "paused" \| "cancelled" }` |
+| POST | `/api/transactions/scan-receipt` | Multipart `receipt` image in, draft transaction out (AI) |
+| GET, PUT, DELETE | `/api/budgets/:year/:month` | Budget with live progress, upsert, remove |
+| GET | `/api/reports/summary`, `/trend`, `/insights` | Monthly totals, multi-month trend, AI insights |
+| GET, PATCH, POST, DELETE | `/api/notifications…` | List, mark read, mark all read, clear |
 
 ## Project structure
 
 ```
 .
-├── client/                  React SPA (Vercel)
-│   ├── public/              favicon, OG image, robots.txt
-│   ├── src/
-│   │   ├── components/      AppShell, ui primitives, charts, finance widgets, forms
-│   │   ├── context/         auth + toast providers
-│   │   ├── lib/             api client, money/date formatting, categories, useApi
-│   │   └── pages/           Landing, Auth, Dashboard, Transactions, Budgets, Reports, Settings
+├── client/                 React SPA (Vercel)
+│   ├── src/components/     AppShell, UI primitives, charts, finance widgets, transaction form
+│   ├── src/context/        auth and toast providers
+│   ├── src/lib/            API client, money and date formatting, categories, useApi
+│   ├── src/pages/          Landing, Auth, Dashboard, Transactions, Budgets, Reports, Settings
 │   └── vercel.json
-├── server/                  Express API (Render)
-│   ├── migrations/          SQL migrations (schema-scoped)
-│   ├── src/
-│   │   ├── routes/          auth, transactions, budgets, reports, notifications
-│   │   ├── services/        ai (Groq), budgets + alerts, recurring scheduler
-│   │   ├── app.js           middleware, routes, /health
-│   │   ├── migrate.js       migration runner
-│   │   └── seed.js          idempotent demo data
-│   └── test/                vitest unit + supertest API tests
+├── server/                 Express API (Render)
+│   ├── migrations/         SQL migrations
+│   ├── src/routes/         auth, transactions, budgets, reports, notifications
+│   ├── src/services/       Groq AI, budget progress and alerts, recurring scheduler
+│   ├── src/{app,db,config,middleware,migrate,seed,server}.js
+│   └── test/               unit and Supertest API tests
 ├── docs/screenshots/
-├── render.yaml              Render Blueprint (API only; DB is shared)
-└── .github/workflows/       ci.yml, keep-alive.yml
+├── render.yaml             Render Blueprint (API only; the database is shared)
+└── .github/workflows/      ci.yml, keep-alive.yml
 ```
 
-## Developer
+## Author
 
 Built by **Harsh Bathija** ([@HarshBathija-04](https://github.com/HarshBathija-04)).
