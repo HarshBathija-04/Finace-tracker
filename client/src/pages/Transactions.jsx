@@ -143,9 +143,9 @@ export default function Transactions() {
         <form
           role="search"
           onSubmit={(e) => e.preventDefault()}
-          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_repeat(2,minmax(0,0.9fr))_repeat(2,minmax(0,1.1fr))_auto]"
+          className="grid grid-cols-2 gap-3 lg:grid-cols-[minmax(0,1.4fr)_repeat(2,minmax(0,0.9fr))_repeat(2,minmax(0,1.1fr))_auto]"
         >
-          <label className="relative sm:col-span-2 lg:col-span-1">
+          <label className="relative col-span-2 lg:col-span-1">
             <span className="sr-only">Search notes and categories</span>
             <Search
               className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted"
@@ -178,7 +178,7 @@ export default function Transactions() {
               ))}
             </Select>
           </label>
-          <label className="relative">
+          <label className="relative col-span-2 sm:col-span-1">
             <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-xs font-medium text-muted">
               From
             </span>
@@ -191,7 +191,7 @@ export default function Transactions() {
               aria-label="From date"
             />
           </label>
-          <label className="relative">
+          <label className="relative col-span-2 sm:col-span-1">
             <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-xs font-medium text-muted">
               To
             </span>
@@ -204,7 +204,7 @@ export default function Transactions() {
               aria-label="To date"
             />
           </label>
-          <div className="flex gap-2 sm:col-span-2 lg:col-span-1">
+          <div className="col-span-2 flex gap-2 lg:col-span-1">
             <Select
               aria-label="Sort"
               value={sort}
