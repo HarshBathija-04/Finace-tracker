@@ -41,7 +41,7 @@ export const PAYMENTS = [
 ];
 
 // Mid-tone hues that read on both the light and dark canvas.
-export const CATEGORY_META = {
+const CATEGORY_META = {
   groceries: { label: "Groceries", color: "#2f9e6f", icon: ShoppingBasket },
   food: { label: "Food & dining", color: "#e07a3f", icon: UtensilsCrossed },
   shopping: { label: "Shopping", color: "#c3559a", icon: ShoppingBag },

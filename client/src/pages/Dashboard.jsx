@@ -8,6 +8,12 @@ import { Button, buttonClass, Card, CardHeader, EmptyState, ErrorState, Skeleton
 import { CashflowChart, CategoryDonut } from "../components/charts";
 import { BudgetRow, Delta, InsightsPanel, StatCard, StatSkeleton, TxnLine } from "../components/finance";
 
+const CardLink = ({ to, children }) => (
+  <Link to={to} className="inline-flex items-center gap-1 rounded-lg text-sm font-medium text-brand hover:underline">
+    {children} <ArrowRight className="size-3.5" aria-hidden="true" />
+  </Link>
+);
+
 export default function Dashboard() {
   const { period, openTransaction, version } = useOutletContext();
   const { user } = useAuth();
@@ -128,14 +134,7 @@ export default function Dashboard() {
           <CardHeader
             id="recent-title"
             title="Recent transactions"
-            action={
-              <Link
-                to="/transactions"
-                className="inline-flex items-center gap-1 rounded-lg text-sm font-medium text-brand hover:underline"
-              >
-                View all <ArrowRight className="size-3.5" aria-hidden="true" />
-              </Link>
-            }
+            action={<CardLink to="/transactions">View all</CardLink>}
           />
           <div className="px-3 py-3">
             {recent.error ? (
@@ -173,14 +172,7 @@ export default function Dashboard() {
                 ? `${budget.percent}% of ${formatMoney(budget.limitMinor, cur, { compact: true })} used`
                 : undefined
             }
-            action={
-              <Link
-                to="/budgets"
-                className="inline-flex items-center gap-1 rounded-lg text-sm font-medium text-brand hover:underline"
-              >
-                Manage <ArrowRight className="size-3.5" aria-hidden="true" />
-              </Link>
-            }
+            action={<CardLink to="/budgets">Manage</CardLink>}
           />
           <div className="space-y-4 p-5">
             {!summary.data ? (

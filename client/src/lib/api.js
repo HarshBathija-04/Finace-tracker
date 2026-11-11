@@ -2,7 +2,7 @@ const BASE = (import.meta.env.VITE_API_URL || "http://localhost:5122").replace(/
 const TOKEN_KEY = "finsight.token";
 const SLOW_AFTER_MS = 3500;
 
-export class ApiError extends Error {
+class ApiError extends Error {
   constructor(status, message, code, details) {
     super(message);
     this.status = status;

@@ -31,7 +31,7 @@ import {
   Select,
   Skeleton,
 } from "../components/ui";
-import { CategoryBadge } from "../components/finance";
+import { Amount, CategoryBadge } from "../components/finance";
 
 const PAGE_SIZE = 15;
 const EVERY = { daily: "day", weekly: "week", monthly: "month" };
@@ -128,12 +128,10 @@ export default function Transactions() {
     }
   };
 
-  const amount = (t) => (
-    <span className={`num font-semibold ${t.type === "income" ? "text-income" : ""}`}>
-      {t.type === "income" ? "+" : "-"}
-      {formatMoney(t.amountMinor, cur)}
-    </span>
-  );
+  const clearFilters = () => {
+    setSearch("");
+    setParams({}, { replace: true });
+  };
 
   return (
     <div className="space-y-5">
@@ -214,14 +212,7 @@ export default function Transactions() {
               <option value="amount_desc">Largest first</option>
               <option value="amount_asc">Smallest first</option>
             </Select>
-            <Button
-              variant="ghost"
-              disabled={!filtered}
-              onClick={() => {
-                setSearch("");
-                setParams({}, { replace: true });
-              }}
-            >
+            <Button variant="ghost" disabled={!filtered} onClick={clearFilters}>
               <FilterX className="size-4" aria-hidden="true" /> Clear
             </Button>
           </div>
@@ -261,14 +252,7 @@ export default function Transactions() {
               icon={FilterX}
               title="No matches"
               action={
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    setSearch("");
-                    setParams({}, { replace: true });
-                  }}
-                >
+                <Button variant="secondary" size="sm" onClick={clearFilters}>
                   Clear filters
                 </Button>
               }
@@ -344,7 +328,9 @@ export default function Transactions() {
                     <td className="px-3 py-2.5 text-muted">
                       {PAYMENTS.find((p) => p.value === t.payment)?.label ?? "—"}
                     </td>
-                    <td className="px-3 py-2.5 text-right whitespace-nowrap">{amount(t)}</td>
+                    <td className="px-3 py-2.5 text-right whitespace-nowrap">
+                      <Amount t={t} currency={cur} />
+                    </td>
                     <td className="px-5 py-1.5">
                       <div className="flex justify-end">
                         <RecurringActions t={t} onChange={changeRecurring} />
@@ -378,7 +364,9 @@ export default function Transactions() {
                       <RecurringBadge t={t} />
                     </span>
                   </button>
-                  <div className="text-right text-sm">{amount(t)}</div>
+                  <div className="text-right text-sm">
+                    <Amount t={t} currency={cur} />
+                  </div>
                   <IconButton label="Delete transaction" onClick={() => setConfirm(t)} className="-mr-2">
                     <Trash2 className="size-4" aria-hidden="true" />
                   </IconButton>
@@ -421,7 +409,9 @@ export default function Transactions() {
               <p className="truncate text-sm font-medium">{confirm.note || categoryMeta(confirm.category).label}</p>
               <p className="text-xs text-muted">{formatDate(confirm.date)}</p>
             </div>
-            <div className="text-sm">{amount(confirm)}</div>
+            <div className="text-sm">
+              <Amount t={confirm} currency={cur} />
+            </div>
           </div>
         )}
         {confirm?.recurring && (

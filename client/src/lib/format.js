@@ -36,7 +36,7 @@ export function parseToMinor(input) {
 export const minorToInput = (minor) =>
   minor == null ? "" : `${Math.floor(minor / 100)}.${String(minor % 100).padStart(2, "0")}`;
 
-export const pad = (n) => String(n).padStart(2, "0");
+const pad = (n) => String(n).padStart(2, "0");
 
 export const todayIso = () => {
   const d = new Date();
@@ -68,5 +68,3 @@ export const formatDate = (iso, opts = { day: "numeric", month: "short", year: "
 
 export const percentChange = (current, previous) =>
   previous ? Math.round(((current - previous) / previous) * 1000) / 10 : null;
-
-export const titleCase = (s) => (s ? s[0].toUpperCase() + s.slice(1) : "");

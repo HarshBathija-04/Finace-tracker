@@ -71,6 +71,15 @@ export function CategoryBadge({ category }) {
   );
 }
 
+export function Amount({ t, currency, className = "" }) {
+  return (
+    <span className={`num font-semibold ${t.type === "income" ? "text-income" : ""} ${className}`}>
+      {t.type === "income" ? "+" : "-"}
+      {formatMoney(t.amountMinor, currency)}
+    </span>
+  );
+}
+
 export function TxnLine({ t, currency, onClick }) {
   const meta = categoryMeta(t.category);
   return (
@@ -87,10 +96,7 @@ export function TxnLine({ t, currency, onClick }) {
           {(t.recurring || t.fromRecurring) && <Repeat className="size-3" aria-label="Recurring" />}
         </span>
       </span>
-      <span className={`num text-sm font-semibold ${t.type === "income" ? "text-income" : ""}`}>
-        {t.type === "income" ? "+" : "-"}
-        {formatMoney(t.amountMinor, currency)}
-      </span>
+      <Amount t={t} currency={currency} className="text-sm" />
     </button>
   );
 }
