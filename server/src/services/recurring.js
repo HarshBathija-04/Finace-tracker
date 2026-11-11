@@ -1,4 +1,5 @@
 import { query } from "../db.js";
+import { todayIso, ymd } from "../lib/domain.js";
 
 const MAX_PER_RUN = 366;
 
@@ -6,7 +7,6 @@ const parse = (iso) => {
   const [y, m, d] = iso.split("-").map(Number);
   return { y, m, d };
 };
-const fmt = (y, m, d) => `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 const daysIn = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
 
 /**
@@ -17,7 +17,7 @@ export function nextOccurrence(iso, frequency, anchorDay) {
   const { y, m, d } = parse(iso);
   if (frequency === "monthly") {
     const [ny, nm] = m === 12 ? [y + 1, 1] : [y, m + 1];
-    return fmt(ny, nm, Math.min(anchorDay ?? d, daysIn(ny, nm)));
+    return ymd(ny, nm, Math.min(anchorDay ?? d, daysIn(ny, nm)));
   }
   const next = new Date(Date.UTC(y, m - 1, d + (frequency === "weekly" ? 7 : 1)));
   return next.toISOString().slice(0, 10);
@@ -35,7 +35,7 @@ export function dueDates({ lastRun, frequency, anchorDay, today, endDate }) {
 }
 
 /** Copies every active recurring template forward to `today`. Safe to run repeatedly. */
-export async function runRecurring(today = new Date().toISOString().slice(0, 10)) {
+export async function runRecurring(today = todayIso()) {
   const { rows } = await query(
     `SELECT id, user_id, type, category, amount_minor, payment, note, occurred_on,
             recurring_frequency, recurring_end_date, COALESCE(recurring_last_run, occurred_on) AS last_run

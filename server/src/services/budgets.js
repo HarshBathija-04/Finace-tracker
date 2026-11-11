@@ -1,13 +1,11 @@
 import { query } from "../db.js";
 import { monthRange } from "../lib/domain.js";
 
-export const WARNING_RATIO = 0.8;
-
 /** "ok" below 80% of the limit, "warning" from 80%, "exceeded" over 100%. A zero limit is never exceeded. */
 export function budgetStatus(spentMinor, limitMinor) {
   if (!limitMinor) return "ok";
   if (spentMinor > limitMinor) return "exceeded";
-  return spentMinor >= limitMinor * WARNING_RATIO ? "warning" : "ok";
+  return spentMinor >= limitMinor * 0.8 ? "warning" : "ok";
 }
 
 const percent = (spent, limit) => (limit ? Math.round((spent / limit) * 1000) / 10 : 0);

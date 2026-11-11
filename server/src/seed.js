@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { pool, withTransaction } from "./db.js";
 import { DEMO_EMAIL } from "./routes/auth.js";
 import { checkBudgetAlerts } from "./services/budgets.js";
+import { ymd } from "./lib/domain.js";
 
 // Deterministic PRNG so every reseed produces the same realistic-looking history.
 function rng(seed) {
@@ -14,8 +15,6 @@ function rng(seed) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-
-const iso = (y, m, d) => `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 
 /** Six months of INR history ending today. Amounts are minor units (paise). */
 export function demoTransactions(today = new Date()) {
@@ -29,7 +28,7 @@ export function demoTransactions(today = new Date()) {
     const m = first.getUTCMonth() + 1;
     const lastDay = back === 0 ? today.getUTCDate() : new Date(Date.UTC(y, m, 0)).getUTCDate();
     const add = (day, type, category, amountMinor, note, payment, extra = {}) => {
-      if (day <= lastDay) out.push({ date: iso(y, m, day), type, category, amountMinor, note, payment, ...extra });
+      if (day <= lastDay) out.push({ date: ymd(y, m, day), type, category, amountMinor, note, payment, ...extra });
     };
     add(1, "income", "salary", 8500000, "Monthly salary - Northwind Labs", "bank");
     add(2, "expense", "rent", 2200000, "Apartment rent", "bank", { rentTemplate: back === 5 });
@@ -112,7 +111,7 @@ const DEMO_BUDGET = {
 };
 
 export async function seed(today = new Date()) {
-  const thisMonth = iso(today.getUTCFullYear(), today.getUTCMonth() + 1, 1);
+  const thisMonth = ymd(today.getUTCFullYear(), today.getUTCMonth() + 1, 1);
   const { rows } = await pool.query(
     `SELECT u.id, EXISTS (SELECT 1 FROM transactions t WHERE t.user_id = u.id AND t.occurred_on >= $2) AS fresh
      FROM users u WHERE lower(email) = $1`,

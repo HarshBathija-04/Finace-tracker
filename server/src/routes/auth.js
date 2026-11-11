@@ -39,7 +39,7 @@ const profileSchema = z
   });
 
 const USER_COLS = "id, name, email, currency, budget_alerts, created_at";
-export const toUser = (r) => ({
+const toUser = (r) => ({
   id: r.id,
   name: r.name,
   email: r.email,

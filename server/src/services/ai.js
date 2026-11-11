@@ -1,7 +1,7 @@
 import Groq from "groq-sdk";
 import { z } from "zod";
 import { config } from "../config.js";
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, HttpError, toMinor } from "../lib/domain.js";
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, PAYMENTS, HttpError, toMinor } from "../lib/domain.js";
 
 let client;
 const groq = () => {
@@ -11,7 +11,7 @@ const groq = () => {
 };
 
 /** One chat completion that must return a JSON object; Groq failures become friendly HTTP errors. */
-export async function chatJson({ model, messages, reasoning = false }) {
+async function chatJson({ model, messages, reasoning = false }) {
   let completion;
   try {
     completion = await groq().chat.completions.create({
@@ -81,7 +81,7 @@ export function normalizeReceipt(raw) {
   const allowed = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
   const category = allowed.includes(String(raw?.category).toLowerCase()) ? String(raw.category).toLowerCase() : "other";
   const date = /^\d{4}-\d{2}-\d{2}$/.test(raw?.date) && !Number.isNaN(Date.parse(raw.date)) ? raw.date : null;
-  const payment = ["card", "cash", "upi", "bank"].includes(raw?.payment) ? raw.payment : null;
+  const payment = PAYMENTS.includes(raw?.payment) ? raw.payment : null;
   const amountMinor = toMinor(String(raw?.amount ?? "").replace(/,/g, ""));
   return {
     type,
@@ -105,7 +105,7 @@ export async function scanReceipt(buffer, mimeType) {
             text:
               "Extract the transaction from this receipt. Reply with JSON only: " +
               '{"type":"expense|income","amount":"total as a decimal string","date":"YYYY-MM-DD or null",' +
-              `"category":"one of ${EXPENSE_CATEGORIES.join(", ")}","payment":"card|cash|upi|bank|null","note":"merchant and short description"}`,
+              `"category":"one of ${EXPENSE_CATEGORIES.join(", ")}","payment":"${PAYMENTS.join("|")}|null","note":"merchant and short description"}`,
           },
           { type: "image_url", image_url: { url: `data:${mimeType};base64,${buffer.toString("base64")}` } },
         ],

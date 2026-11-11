@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { query } from "../db.js";
-import { monthRange, yearMonth } from "../lib/domain.js";
+import { monthRange, todayIso, yearMonth } from "../lib/domain.js";
 import { aiLimiter, requireAuth } from "../middleware.js";
 import { getBudgetProgress } from "../services/budgets.js";
 import { generateInsights } from "../services/ai.js";
@@ -10,7 +10,7 @@ import { config } from "../config.js";
 const periodSchema = z.object(yearMonth);
 const trendSchema = z.object({ ...yearMonth, months: z.coerce.number().int().min(2).max(24).default(6) });
 
-export async function monthSummary(userId, year, month) {
+async function monthSummary(userId, year, month) {
   const [from, to] = monthRange(year, month);
   const prev = month === 1 ? monthRange(year - 1, 12) : monthRange(year, month - 1);
   const totals = `COALESCE(SUM(amount_minor) FILTER (WHERE type = 'income'), 0)::bigint AS income,
@@ -48,7 +48,7 @@ export async function monthSummary(userId, year, month) {
   ]);
   const c = cur.rows[0];
   // Average over days elapsed so far, so the current month is not diluted by days still to come.
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
   const days = daily.rows.filter((r) => r.date <= today).length || daily.rows.length;
   return {
     year,
@@ -67,7 +67,7 @@ export async function monthSummary(userId, year, month) {
   };
 }
 
-export async function monthlyTrend(userId, year, month, months) {
+async function monthlyTrend(userId, year, month, months) {
   const end = monthRange(year, month)[1];
   const { rows } = await query(
     `SELECT to_char(m, 'YYYY-MM') AS month,
@@ -116,12 +116,11 @@ const CACHE_MS = 30 * 60_000;
 export const reportsRouter = Router();
 reportsRouter.use(requireAuth);
 
+const summaryAndBudget = (userId, { year, month }) =>
+  Promise.all([monthSummary(userId, year, month), getBudgetProgress({ query }, userId, year, month)]);
+
 reportsRouter.get("/summary", async (req, res) => {
-  const { year, month } = periodSchema.parse(req.query);
-  const [summary, budget] = await Promise.all([
-    monthSummary(req.userId, year, month),
-    getBudgetProgress({ query }, req.userId, year, month),
-  ]);
+  const [summary, budget] = await summaryAndBudget(req.userId, periodSchema.parse(req.query));
   res.json({ summary, budget });
 });
 
@@ -131,11 +130,7 @@ reportsRouter.get("/trend", async (req, res) => {
 });
 
 reportsRouter.get("/insights", aiLimiter, async (req, res) => {
-  const { year, month } = periodSchema.parse(req.query);
-  const [summary, budget] = await Promise.all([
-    monthSummary(req.userId, year, month),
-    getBudgetProgress({ query }, req.userId, year, month),
-  ]);
+  const [summary, budget] = await summaryAndBudget(req.userId, periodSchema.parse(req.query));
   if (!summary.transactionCount) {
     return res.json({ insights: [], reason: "Add a few transactions this month to unlock AI insights." });
   }

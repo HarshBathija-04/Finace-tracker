@@ -53,8 +53,11 @@ export class HttpError extends Error {
 
 export const notFound = (what) => new HttpError(404, `${what} not found`, "NOT_FOUND");
 
+const pad = (n) => String(n).padStart(2, "0");
+export const ymd = (y, m, d) => `${y}-${pad(m)}-${pad(d)}`;
+export const todayIso = () => new Date().toISOString().slice(0, 10);
+
 export const monthRange = (year, month) => {
-  const pad = (n) => String(n).padStart(2, "0");
   const next = month === 12 ? [year + 1, 1] : [year, month + 1];
-  return [`${year}-${pad(month)}-01`, `${next[0]}-${pad(next[1])}-01`];
+  return [ymd(year, month, 1), ymd(next[0], next[1], 1)];
 };

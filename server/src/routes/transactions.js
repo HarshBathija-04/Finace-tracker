@@ -10,13 +10,12 @@ import {
   isoDate,
   minorAmount,
   notFound,
+  todayIso,
   HttpError,
 } from "../lib/domain.js";
 import { aiLimiter, receiptUpload, requireAuth } from "../middleware.js";
 import { checkBudgetAlerts } from "../services/budgets.js";
 import { scanReceipt } from "../services/ai.js";
-
-const today = () => new Date().toISOString().slice(0, 10);
 
 const txnSchema = z
   .object({
@@ -56,7 +55,7 @@ const SORTS = {
   amount_asc: "amount_minor ASC",
 };
 
-export const toTxn = (r) => ({
+const toTxn = (r) => ({
   id: r.id,
   type: r.type,
   category: r.category,
@@ -135,7 +134,7 @@ transactionsRouter.post("/", async (req, res) => {
       t.type,
       t.category,
       t.amountMinor,
-      t.date || today(),
+      t.date || todayIso(),
       t.payment ?? null,
       t.note || null,
       t.recurring?.frequency ?? null,
@@ -193,11 +192,8 @@ transactionsRouter.patch("/:id/recurring", async (req, res) => {
 
 transactionsRouter.delete("/:id", async (req, res) => {
   const { id } = idSchema.parse(req.params);
-  const { rows } = await query(`DELETE FROM transactions WHERE id = $1 AND user_id = $2 RETURNING ${COLS}`, [
-    id,
-    req.userId,
-  ]);
-  if (!rows[0]) throw notFound("Transaction");
+  const { rowCount } = await query("DELETE FROM transactions WHERE id = $1 AND user_id = $2", [id, req.userId]);
+  if (!rowCount) throw notFound("Transaction");
   res.status(204).end();
 });
 
