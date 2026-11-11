@@ -48,7 +48,7 @@ export function IconButton({ label, children, className = "", ...props }) {
 }
 
 const control =
-  "w-full rounded-xl border border-line bg-surface px-3 text-ink placeholder:text-muted/70 transition-[border-color,box-shadow] duration-150 focus:border-brand focus:outline-none focus:ring-3 focus:ring-brand/20 aria-invalid:border-expense";
+  "w-full rounded-xl border border-line bg-surface px-3 text-ink placeholder:text-muted/70 transition-[border-color,box-shadow] duration-150 focus:border-brand focus:outline-none focus:ring-3 focus:ring-brand/20 disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-muted aria-invalid:border-expense";
 
 /** Label + control + hint/error, wired up with ids for screen readers. */
 export function Field({ label, error, hint, children, className = "" }) {

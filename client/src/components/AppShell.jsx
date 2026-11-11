@@ -157,14 +157,16 @@ export default function AppShell({ fallback }) {
         </Suspense>
       </main>
 
-      <button
-        type="button"
-        onClick={() => openTransaction()}
-        aria-label="Add transaction"
-        className="fixed right-4 bottom-20 z-30 grid size-14 place-items-center rounded-2xl bg-brand text-on-brand shadow-pop transition-transform duration-150 active:scale-95 sm:hidden"
-      >
-        <Plus className="size-6" aria-hidden="true" />
-      </button>
+      {pathname !== "/settings" && (
+        <button
+          type="button"
+          onClick={() => openTransaction()}
+          aria-label="Add transaction"
+          className="fixed right-4 bottom-20 z-30 grid size-14 place-items-center rounded-2xl bg-brand text-on-brand shadow-pop transition-transform duration-150 active:scale-95 sm:hidden"
+        >
+          <Plus className="size-6" aria-hidden="true" />
+        </button>
+      )}
 
       <nav
         aria-label="Main"
