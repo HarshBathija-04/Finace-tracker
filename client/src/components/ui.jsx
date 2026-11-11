@@ -147,7 +147,10 @@ export function Modal({ open, onClose, title, description, children, wide = fals
   const titleId = useId();
   useEffect(() => {
     const d = ref.current;
-    if (open && !d.open) d.showModal();
+    if (open && !d.open) {
+      d.showModal();
+      d.querySelector("[data-autofocus]")?.focus(); // start in the form, not on the close button
+    }
     if (!open && d.open) d.close();
   }, [open]);
   return (

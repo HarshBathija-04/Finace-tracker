@@ -189,6 +189,7 @@ export default function TransactionForm({ transaction, onClose, onSaved }) {
             {(p) => (
               <Input
                 {...p}
+                data-autofocus
                 inputMode="decimal"
                 autoComplete="off"
                 placeholder="0.00"
