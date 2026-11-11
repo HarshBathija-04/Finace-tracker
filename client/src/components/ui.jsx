@@ -5,7 +5,7 @@ const BUTTON = {
   primary: "bg-brand text-on-brand hover:bg-brand-hover shadow-sm",
   secondary: "bg-surface text-ink border border-line hover:bg-surface-2",
   ghost: "text-muted hover:text-ink hover:bg-surface-2",
-  danger: "bg-expense text-white hover:opacity-90",
+  danger: "bg-expense text-on-brand hover:opacity-90",
 };
 
 const SIZES = { sm: "h-9 px-3 text-sm", md: "h-10 px-4 text-sm", lg: "h-12 px-6 text-base" };
@@ -39,7 +39,7 @@ export function IconButton({ label, children, className = "", ...props }) {
       type="button"
       aria-label={label}
       title={label}
-      className={`grid size-10 place-items-center rounded-xl text-muted transition-colors duration-150 hover:bg-surface-2 hover:text-ink ${className}`}
+      className={`grid size-10 place-items-center rounded-xl text-muted transition-colors duration-150 hover:bg-surface-2 hover:text-ink disabled:pointer-events-none disabled:opacity-40 ${className}`}
       {...props}
     >
       {children}
@@ -130,7 +130,7 @@ export function ErrorState({ error, onRetry, compact = false }) {
   return (
     <div role="alert" className={`flex flex-col items-center text-center ${compact ? "py-6" : "px-6 py-10"}`}>
       <CircleAlert className="mb-2 size-6 text-expense" aria-hidden="true" />
-      <p className="font-medium">Couldn't load this</p>
+      <p className="font-medium">We couldn't load this</p>
       <p className="mt-1 max-w-sm text-sm text-muted">{error?.message || "Something went wrong."}</p>
       {onRetry && (
         <Button variant="secondary" size="sm" className="mt-4" onClick={onRetry}>
@@ -144,6 +144,7 @@ export function ErrorState({ error, onRetry, compact = false }) {
 /** Native <dialog>: focus trapping, Esc and inert background come from the browser. */
 export function Modal({ open, onClose, title, description, children, wide = false }) {
   const ref = useRef(null);
+  const titleId = useId();
   useEffect(() => {
     const d = ref.current;
     if (open && !d.open) d.showModal();
@@ -158,14 +159,14 @@ export function Modal({ open, onClose, title, description, children, wide = fals
         onClose();
       }}
       onClick={(e) => e.target === ref.current && onClose()}
-      aria-labelledby="modal-title"
+      aria-labelledby={titleId}
       className={`m-auto max-h-[92dvh] w-[calc(100%-2rem)] overflow-y-auto rounded-2xl border border-line bg-surface p-0 text-ink shadow-pop ${wide ? "max-w-2xl" : "max-w-lg"}`}
     >
       {open && (
-        <div className="p-5 sm:p-6">
+        <div className="rise p-5 sm:p-6">
           <div className="mb-5 flex items-start justify-between gap-4">
             <div>
-              <h2 id="modal-title" className="text-lg font-semibold">
+              <h2 id={titleId} className="text-lg font-semibold">
                 {title}
               </h2>
               {description && <p className="mt-1 text-sm text-muted">{description}</p>}

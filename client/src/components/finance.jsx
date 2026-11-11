@@ -163,7 +163,7 @@ export function InsightsPanel({ period, version, limit }) {
                 </div>
               </div>
             ))}
-            <p className="text-xs text-muted">Reading your month...</p>
+            <p className="text-xs text-muted">Reading your month…</p>
           </div>
         )}
         {!loading && error && <ErrorState compact error={error} onRetry={reload} />}

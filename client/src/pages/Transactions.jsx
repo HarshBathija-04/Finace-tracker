@@ -36,6 +36,9 @@ import { Amount, CategoryBadge } from "../components/finance";
 const PAGE_SIZE = 15;
 const EVERY = { daily: "day", weekly: "week", monthly: "month" };
 const ALL_CATEGORIES = [...new Set([...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES])];
+const SORT_BUTTON = "inline-flex items-center gap-1 rounded uppercase transition-colors hover:text-ink";
+const sortDir = (sort, by) => (sort.startsWith(by) ? (sort.endsWith("asc") ? "ascending" : "descending") : undefined);
+const ARROW = { ascending: "↑", descending: "↓" };
 const FILTER_KEYS = ["q", "type", "category", "from", "to", "recurring", "sort"];
 
 function RecurringActions({ t, onChange }) {
@@ -83,6 +86,7 @@ export default function Transactions() {
   const [confirm, setConfirm] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const page = Number(params.get("page")) || 1;
+  const sort = params.get("sort") || "date_desc";
 
   const update = (patch) => {
     const next = new URLSearchParams(params);
@@ -203,7 +207,7 @@ export default function Transactions() {
           <div className="flex gap-2 sm:col-span-2 lg:col-span-1">
             <Select
               aria-label="Sort"
-              value={params.get("sort") || "date_desc"}
+              value={sort}
               onChange={(e) => update({ sort: e.target.value === "date_desc" ? "" : e.target.value })}
               className="lg:hidden"
             >
@@ -278,13 +282,13 @@ export default function Transactions() {
               <caption className="sr-only">Transactions</caption>
               <thead className="border-b border-line bg-surface-2/50 text-left text-xs tracking-wide text-muted uppercase">
                 <tr>
-                  <th scope="col" className="px-5 py-3 font-medium">
+                  <th scope="col" aria-sort={sortDir(sort, "date")} className="px-5 py-3 font-medium">
                     <button
                       type="button"
-                      className="uppercase"
-                      onClick={() => update({ sort: params.get("sort") === "date_asc" ? "" : "date_asc" })}
+                      className={SORT_BUTTON}
+                      onClick={() => update({ sort: sort === "date_asc" ? "" : "date_asc" })}
                     >
-                      Date {params.get("sort") === "date_asc" ? "↑" : !params.get("sort") ? "↓" : ""}
+                      Date <span aria-hidden="true">{ARROW[sortDir(sort, "date")]}</span>
                     </button>
                   </th>
                   <th scope="col" className="px-3 py-3 font-medium">
@@ -296,16 +300,13 @@ export default function Transactions() {
                   <th scope="col" className="px-3 py-3 font-medium">
                     Paid with
                   </th>
-                  <th scope="col" className="px-3 py-3 text-right font-medium">
+                  <th scope="col" aria-sort={sortDir(sort, "amount")} className="px-3 py-3 text-right font-medium">
                     <button
                       type="button"
-                      className="uppercase"
-                      onClick={() =>
-                        update({ sort: params.get("sort") === "amount_desc" ? "amount_asc" : "amount_desc" })
-                      }
+                      className={SORT_BUTTON}
+                      onClick={() => update({ sort: sort === "amount_desc" ? "amount_asc" : "amount_desc" })}
                     >
-                      Amount{" "}
-                      {params.get("sort") === "amount_desc" ? "↓" : params.get("sort") === "amount_asc" ? "↑" : ""}
+                      Amount <span aria-hidden="true">{ARROW[sortDir(sort, "amount")]}</span>
                     </button>
                   </th>
                   <th scope="col" className="px-5 py-3 text-right font-medium">

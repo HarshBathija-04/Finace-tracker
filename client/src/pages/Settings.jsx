@@ -15,6 +15,7 @@ export default function Settings() {
   const [pw, setPw] = useState({ currentPassword: "", newPassword: "" });
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(null);
+  const profileChanged = ["name", "email", "currency"].some((k) => profile[k] !== user[k]);
 
   const save = async (kind, body, after) => {
     setBusy(kind);
@@ -84,7 +85,7 @@ export default function Settings() {
             )}
           </Field>
           <div className="flex justify-end">
-            <Button type="submit" loading={busy === "profile"}>
+            <Button type="submit" loading={busy === "profile"} disabled={!profileChanged}>
               Save profile
             </Button>
           </div>

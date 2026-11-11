@@ -175,8 +175,8 @@ export default function AppShell({ fallback }) {
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium ${
-                isActive ? "text-brand" : "text-muted"
+              `flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors duration-150 ${
+                isActive ? "text-brand" : "text-muted hover:text-ink"
               }`
             }
           >

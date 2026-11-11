@@ -1,10 +1,10 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { CloudOff } from "lucide-react";
+import { CloudOff, LoaderCircle } from "lucide-react";
 import { AuthProvider, useAuth } from "./context/auth";
 import { ToastProvider } from "./context/toast";
 import { onSlowChange } from "./lib/api";
-import { Button, Skeleton } from "./components/ui";
+import { Button, Logo, Skeleton } from "./components/ui";
 import AppShell from "./components/AppShell";
 import Landing from "./pages/Landing";
 import AuthPage from "./pages/AuthPage";
@@ -52,8 +52,13 @@ function RequireAuth({ children }) {
   const location = useLocation();
   if (status === "checking") {
     return (
-      <div className="grid min-h-dvh place-items-center text-muted" aria-busy="true">
-        Loading your workspace...
+      <div className="grid min-h-dvh place-items-center" role="status" aria-busy="true">
+        <div className="flex flex-col items-center gap-4 text-sm text-muted">
+          <Logo />
+          <span className="flex items-center gap-2">
+            <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> Loading your workspace…
+          </span>
+        </div>
       </div>
     );
   }
@@ -63,9 +68,9 @@ function RequireAuth({ children }) {
         <div>
           <CloudOff className="mx-auto mb-3 size-8 text-muted" aria-hidden="true" />
           <h1 className="text-lg font-semibold">We can't reach the server</h1>
-          <p className="mt-1 text-muted">It may still be starting up. Give it a moment and retry.</p>
+          <p className="mt-1 text-muted">It may still be waking up. Give it a moment, then try again.</p>
           <Button className="mt-5" onClick={() => window.location.reload()}>
-            Retry
+            Try again
           </Button>
         </div>
       </div>

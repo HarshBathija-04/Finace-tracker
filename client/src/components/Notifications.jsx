@@ -66,7 +66,7 @@ export default function Notifications({ version }) {
         >
           <Bell className="size-[18px]" aria-hidden="true" />
           {unread > 0 && (
-            <span className="num absolute top-1.5 right-1.5 grid min-w-4 place-items-center rounded-full bg-expense px-1 text-[10px] leading-4 font-semibold text-white">
+            <span className="num absolute top-1.5 right-1.5 grid min-w-4 place-items-center rounded-full bg-expense px-1 text-[10px] leading-4 font-semibold text-on-brand">
               {unread > 9 ? "9+" : unread}
             </span>
           )}

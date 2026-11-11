@@ -154,7 +154,7 @@ export default function TransactionForm({ transaction, onClose, onSaved }) {
               </p>
               <Button variant="secondary" size="sm" loading={scanning} onClick={() => fileRef.current?.click()}>
                 {!scanning && <ScanLine className="size-4" aria-hidden="true" />}
-                {scanning ? "Reading..." : "Scan receipt"}
+                {scanning ? "Reading receipt…" : "Scan receipt"}
               </Button>
             </div>
           </div>
